@@ -13,10 +13,14 @@ load_dotenv()
 firebase_cert_path = os.getenv('FIREBASE_CERT_PATH')
 database_url = os.getenv('FIREBASE_DATABASE_URL')
 
-cred = credentials.Certificate(firebase_cert_path)
-firebase_admin.initialize_app(cred, {
-    'databaseURL': database_url
-})
+# Check if the Firebase app is already initialized
+try:
+    firebase_admin.get_app()
+except ValueError:
+    cred = credentials.Certificate(firebase_cert_path)
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': database_url
+    })
 
 # Firestore for user data and Realtime Database for progress tracking
 firestore_db = firestore.client()
@@ -42,7 +46,7 @@ def fetch_user_data_by_email(email):
         for doc in query:
             user_data = doc.to_dict()
             user_id = doc.id
-        
+
         if user_data:
             progress_data = realtime_db.child('users').child(user_id).get()
             return {**user_data, **progress_data} if progress_data else user_data
