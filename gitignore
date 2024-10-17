@@ -1,8 +1,2 @@
-
-# Ignore .env file containing API key
 .env
-
-# Other files to ignore
-node_modules/
-.DS_Store
-logs/
+authwithbreastselfexamination-firebase-adminsdk-q0jsb-224dee5eae.json
