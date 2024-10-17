@@ -33,10 +33,10 @@ Levenshtein==0.26.0
 MarkupSafe==2.1.5
 numpy>=1.23.5,<2.0
 openai>=0.27.0
-packaging==24.1
+packaging>=21.3,<24
 pdfminer.six==20231228
 pdfplumber==0.11.4
-pillow==10.4.0
+pillow>=9.1,<10  # Adjusted to resolve conflicts with streamlit and pdfplumber
 pycparser==2.22
 pydantic==2.9.2
 pydantic_core==2.23.4

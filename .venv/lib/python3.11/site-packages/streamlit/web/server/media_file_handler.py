@@ -1,4 +1,4 @@
-# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2024)
+# Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
-
-from urllib.parse import quote
+from typing import Optional
+from urllib.parse import quote, unquote_plus
 
 import tornado.web
 
@@ -24,6 +23,7 @@ from streamlit.runtime.memory_media_file_storage import (
     MemoryMediaFileStorage,
     get_extension_for_mimetype,
 )
+from streamlit.string_util import generate_download_filename_from_title
 from streamlit.web.server import allow_cross_origin_requests
 
 _LOGGER = get_logger(__name__)
@@ -62,17 +62,22 @@ class MediaFileHandler(tornado.web.StaticFileHandler):
             filename = media_file.filename
 
             if not filename:
-                filename = f"streamlit_download{get_extension_for_mimetype(media_file.mimetype)}"
+                title = self.get_argument("title", "", True)
+                title = unquote_plus(title)
+                filename = generate_download_filename_from_title(title)
+                filename = (
+                    f"{filename}{get_extension_for_mimetype(media_file.mimetype)}"
+                )
 
             try:
                 # Check that the value can be encoded in latin1. Latin1 is
                 # the default encoding for headers.
                 filename.encode("latin1")
-                file_expr = f'filename="{filename}"'
+                file_expr = 'filename="{}"'.format(filename)
             except UnicodeEncodeError:
                 # RFC5987 syntax.
                 # See: https://datatracker.ietf.org/doc/html/rfc5987
-                file_expr = f"filename*=utf-8''{quote(filename)}"
+                file_expr = "filename*=utf-8''{}".format(quote(filename))
 
             self.set_header("Content-Disposition", f"attachment; {file_expr}")
 
@@ -113,7 +118,7 @@ class MediaFileHandler(tornado.web.StaticFileHandler):
 
     @classmethod
     def get_content(
-        cls, abspath: str, start: int | None = None, end: int | None = None
+        cls, abspath: str, start: Optional[int] = None, end: Optional[int] = None
     ):
         _LOGGER.debug("MediaFileHandler: GET %s", abspath)
 
