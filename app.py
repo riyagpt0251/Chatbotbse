@@ -15,7 +15,7 @@ firestore_db = firestore.client()
 realtime_db = db.reference()
 
 # OpenAI API Key
-openai.api_key = "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"
+openai.api_key = "API_KEY"
 
 # Directory to save audio files
 audio_dir = os.path.join(os.getcwd(), 'static')
