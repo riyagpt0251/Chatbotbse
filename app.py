@@ -3,11 +3,18 @@ from gtts import gTTS
 import os
 import firebase_admin
 from firebase_admin import credentials, firestore, db
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file
+load_dotenv()
 
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate("authwithbreastselfexamination-firebase-adminsdk-q0jsb-21cca9f10e.json")
+firebase_cert_path = os.getenv('FIREBASE_CERT_PATH')
+database_url = os.getenv('FIREBASE_DATABASE_URL')
+
+cred = credentials.Certificate(firebase_cert_path)
 firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://authwithbreastselfexamination-default-rtdb.firebaseio.com'
+    'databaseURL': database_url
 })
 
 # Firestore for user data and Realtime Database for progress tracking
@@ -15,10 +22,10 @@ firestore_db = firestore.client()
 realtime_db = db.reference()
 
 # OpenAI API Key
-openai.api_key = "API_KEY"
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Directory to save audio files
-audio_dir = os.path.join(os.getcwd(), 'static')
+audio_dir = os.getenv('AUDIO_DIR')
 os.makedirs(audio_dir, exist_ok=True)
 
 # Fetch user data from Firestore and Realtime Database using email
