@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+import streamlit as st
 import openai
 from gtts import gTTS
 import os
@@ -33,9 +33,6 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 audio_dir = os.getenv('AUDIO_DIR')
 os.makedirs(audio_dir, exist_ok=True)
 
-# Initialize Flask app
-app = Flask(__name__)
-
 # Fetch user data from Firestore and Realtime Database using email
 def fetch_user_data_by_email(email):
     try:
@@ -54,9 +51,10 @@ def fetch_user_data_by_email(email):
             return None
 
     except Exception as e:
-        print(f"Error fetching user data: {e}")
+        st.error(f"Error fetching user data: {e}")
         return None
 
+# Generate personalized question based on user progress
 # Generate personalized question based on user progress
 def generate_personalized_question(user_data):
     first_name = user_data.get('fname', 'User')
@@ -64,7 +62,9 @@ def generate_personalized_question(user_data):
     video_watched = user_data.get('videoWatched', False)
     video_progress = user_data.get('videoProgress', 0)
 
-    if slides_completed and not video_watched:
+    if slides_completed and video_watched:
+        return f"Hello {first_name}, you've completed both the slides and the video. Would you like to complete the simulation now?"
+    elif slides_completed and not video_watched:
         return f"Hello {first_name}, you have completed the slides. Tell me the steps to perform breast self-examination."
     elif video_watched:
         return f"Hello {first_name}, you have completed the video. Do you have any questions regarding breast self-examination?"
@@ -72,6 +72,7 @@ def generate_personalized_question(user_data):
         return f"Hello {first_name}, you have watched {video_progress}% of the video. Would you like to continue learning or ask any questions?"
     else:
         return f"Hello {first_name}, would you like to start learning about breast self-examination?"
+
 
 # Get GPT answer based on the user-entered question
 def get_gpt_answer(question, user_data):
@@ -89,7 +90,7 @@ def get_gpt_answer(question, user_data):
         )
         return response['choices'][0]['message']['content'].strip()
     except Exception as e:
-        print(f"Error getting GPT answer: {e}")
+        st.error(f"Error getting GPT answer: {e}")
         return "I couldn't fetch an answer. Please try again later."
 
 # Generate an audio response using gTTS (Bengali)
@@ -101,52 +102,38 @@ def generate_audio_response(text, filename='response.mp3', lang='bn'):
             tts.save(file_path)
             return file_path
         except Exception as e:
-            print(f"Error generating audio: {e}")
+            st.error(f"Error generating audio: {e}")
             return None
     else:
         return None
 
-# Route to fetch user data and generate personalized question
-@app.route('/fetch_user_data', methods=['POST'])
-def fetch_user():
-    email = request.json.get('email')
-    if not email:
-        return jsonify({"error": "Email is required"}), 400
+# Streamlit UI
+st.title('Personalized Health Assistant')
 
+# Input email to fetch user data
+email = st.text_input("Enter your email to fetch data:")
+
+if st.button("Fetch User Data"):
     user_data = fetch_user_data_by_email(email)
-    if not user_data:
-        return jsonify({"error": "User not found"}), 404
-
-    question = generate_personalized_question(user_data)
-    return jsonify({"personalized_question": question, "user_data": user_data})
-
-# Route to get GPT answer and generate audio response
-@app.route('/get_answer', methods=['POST'])
-def get_answer():
-    data = request.json
-    user_data = data.get('user_data')
-    user_input = data.get('question')
-
-    if not user_data or not user_input:
-        return jsonify({"error": "User data and question are required"}), 400
-
-    answer = get_gpt_answer(user_input, user_data)
-    audio_path = generate_audio_response(answer)
-
-    if not audio_path:
-        return jsonify({"error": "Failed to generate audio"}), 500
-
-    return jsonify({"gpt_answer": answer, "audio_url": f"/audio/{os.path.basename(audio_path)}"})
-
-# Route to serve audio files
-@app.route('/audio/<filename>', methods=['GET'])
-def get_audio(filename):
-    file_path = os.path.join(audio_dir, filename)
-    if os.path.exists(file_path):
-        return send_file(file_path)
+    if user_data:
+        st.write("User Data:", user_data)
+        question = generate_personalized_question(user_data)
+        st.write("Personalized Question:", question)
     else:
-        return jsonify({"error": "Audio file not found"}), 404
+        st.error("User not found or failed to fetch data.")
 
-# Run the Flask app
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+# Input to ask question based on user data
+user_question = st.text_input("Ask a health-related question:")
+
+if st.button("Get Answer"):
+    if user_data and user_question:
+        answer = get_gpt_answer(user_question, user_data)
+        st.write("GPT Answer:", answer)
+
+        audio_path = generate_audio_response(answer)
+        if audio_path:
+            audio_file = open(audio_path, 'rb')
+            st.audio(audio_file.read(), format='audio/mp3')
+            st.download_button("Download Audio", audio_file, file_name="response.mp3")
+    else:
+        st.error("Please fetch user data and enter a question.")
