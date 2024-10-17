@@ -5,7 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore, db
 
 # Initialize Firebase Admin SDK
-cred = credentials.Certificate("authwithbreastselfexamination-firebase-adminsdk-q0jsb-683ac8caeb.json")
+cred = credentials.Certificate("authwithbreastselfexamination-firebase-adminsdk-q0jsb-21cca9f10e.json")
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://authwithbreastselfexamination-default-rtdb.firebaseio.com'
 })
