@@ -16,8 +16,7 @@
 # See the README file for information on usage and redistribution.
 #
 from . import BmpImagePlugin, Image
-from ._binary import i16le as i16
-from ._binary import i32le as i32
+from ._binary import i8, i16le as i16, i32le as i32
 
 #
 # --------------------------------------------------------------------
@@ -32,32 +31,32 @@ def _accept(prefix):
 
 
 class CurImageFile(BmpImagePlugin.BmpImageFile):
+
     format = "CUR"
     format_description = "Windows Cursor"
 
     def _open(self):
+
         offset = self.fp.tell()
 
         # check magic
         s = self.fp.read(6)
         if not _accept(s):
-            msg = "not a CUR file"
-            raise SyntaxError(msg)
+            raise SyntaxError("not a CUR file")
 
         # pick the largest cursor in the file
         m = b""
-        for i in range(i16(s, 4)):
+        for i in range(i16(s[4:])):
             s = self.fp.read(16)
             if not m:
                 m = s
-            elif s[0] > m[0] and s[1] > m[1]:
+            elif i8(s[0]) > i8(m[0]) and i8(s[1]) > i8(m[1]):
                 m = s
         if not m:
-            msg = "No cursors were found"
-            raise TypeError(msg)
+            raise TypeError("No cursors were found")
 
         # load as bitmap
-        self._bitmap(i32(m, 12) + offset)
+        self._bitmap(i32(m[12:]) + offset)
 
         # patch up the bitmap height
         self._size = self.size[0], self.size[1] // 2

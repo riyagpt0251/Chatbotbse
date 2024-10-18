@@ -16,6 +16,7 @@
 
 
 from . import Image, ImageFile
+from ._binary import i8
 
 ##
 # Image plugin for PhotoCD images.  This plugin only reads the 768x512
@@ -24,19 +25,20 @@ from . import Image, ImageFile
 
 
 class PcdImageFile(ImageFile.ImageFile):
+
     format = "PCD"
     format_description = "Kodak PhotoCD"
 
     def _open(self):
+
         # rough
         self.fp.seek(2048)
         s = self.fp.read(2048)
 
         if s[:4] != b"PCD_":
-            msg = "not a PCD file"
-            raise SyntaxError(msg)
+            raise SyntaxError("not a PCD file")
 
-        orientation = s[1538] & 3
+        orientation = i8(s[1538]) & 3
         self.tile_post_rotate = None
         if orientation == 1:
             self.tile_post_rotate = 90

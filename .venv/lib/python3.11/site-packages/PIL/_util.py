@@ -1,17 +1,28 @@
 import os
-from pathlib import Path
+import sys
+
+py36 = sys.version_info[0:2] >= (3, 6)
 
 
-def is_path(f):
-    return isinstance(f, (bytes, str, Path))
+if py36:
+    from pathlib import Path
+
+    def isPath(f):
+        return isinstance(f, (bytes, str, Path))
 
 
-def is_directory(f):
-    """Checks if an object is a string, and that it points to a directory."""
-    return is_path(f) and os.path.isdir(f)
+else:
+
+    def isPath(f):
+        return isinstance(f, (bytes, str))
 
 
-class DeferredError:
+# Checks if an object is a string, and that it points to a directory.
+def isDirectory(f):
+    return isPath(f) and os.path.isdir(f)
+
+
+class deferred_error:
     def __init__(self, ex):
         self.ex = ex
 
