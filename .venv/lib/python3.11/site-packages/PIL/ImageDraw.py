@@ -29,13 +29,13 @@
 #
 # See the README file for information on usage and redistribution.
 #
-from __future__ import annotations
 
 import math
 import numbers
-import struct
+import warnings
 
 from . import Image, ImageColor
+from ._deprecate import deprecate
 
 """
 A simple 2D drawing interface for PIL images.
@@ -114,15 +114,6 @@ class ImageDraw:
 
             self.font = ImageFont.load_default()
         return self.font
-
-    def _getfont(self, font_size):
-        if font_size is not None:
-            from . import ImageFont
-
-            font = ImageFont.load_default(font_size)
-        else:
-            font = self.getfont()
-        return font
 
     def _getink(self, ink, fill=None):
         if ink is None and fill is None:
@@ -290,11 +281,11 @@ class ImageDraw:
                 self.im.paste(im.im, (0, 0) + im.size, mask.im)
 
     def regular_polygon(
-        self, bounding_circle, n_sides, rotation=0, fill=None, outline=None, width=1
+        self, bounding_circle, n_sides, rotation=0, fill=None, outline=None
     ):
         """Draw a regular polygon."""
         xy = _compute_regular_polygon_vertices(bounding_circle, n_sides, rotation)
-        self.polygon(xy, fill, outline, width)
+        self.polygon(xy, fill, outline)
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
         """Draw a rectangle."""
@@ -325,11 +316,11 @@ class ImageDraw:
 
         full_x, full_y = False, False
         if all(corners):
-            full_x = d >= x1 - x0 - 1
+            full_x = d >= x1 - x0
             if full_x:
                 # The two left and two right corners are joined
                 d = x1 - x0
-            full_y = d >= y1 - y0 - 1
+            full_y = d >= y1 - y0
             if full_y:
                 # The two top and two bottom corners are joined
                 d = y1 - y0
@@ -442,11 +433,17 @@ class ImageDraw:
         return text.split(split_character)
 
     def _multiline_spacing(self, font, spacing, stroke_width):
-        return (
-            self.textbbox((0, 0), "A", font, stroke_width=stroke_width)[3]
-            + stroke_width
-            + spacing
-        )
+        # this can be replaced with self.textbbox(...)[3] when textsize is removed
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            return (
+                self.textsize(
+                    "A",
+                    font=font,
+                    stroke_width=stroke_width,
+                )[1]
+                + spacing
+            )
 
     def text(
         self,
@@ -467,13 +464,6 @@ class ImageDraw:
         **kwargs,
     ):
         """Draw text."""
-        if embedded_color and self.mode not in ("RGB", "RGBA"):
-            msg = "Embedded color supported only in RGB and RGBA modes"
-            raise ValueError(msg)
-
-        if font is None:
-            font = self._getfont(kwargs.get("font_size"))
-
         if self._multiline_check(text):
             return self.multiline_text(
                 xy,
@@ -490,6 +480,13 @@ class ImageDraw:
                 stroke_fill,
                 embedded_color,
             )
+
+        if embedded_color and self.mode not in ("RGB", "RGBA"):
+            msg = "Embedded color supported only in RGB and RGBA modes"
+            raise ValueError(msg)
+
+        if font is None:
+            font = self.getfont()
 
         def getink(fill):
             ink, fill = self._getink(fill)
@@ -544,8 +541,7 @@ class ImageDraw:
                 # font.getmask2(mode="RGBA") returns color in RGB bands and mask in A
                 # extract mask and set text alpha
                 color, mask = mask, mask.getband(3)
-                ink_alpha = struct.pack("i", ink)[3]
-                color.fillband(3, ink_alpha)
+                color.fillband(3, (ink >> 24) & 0xFF)
                 x, y = coord
                 self.im.paste(color, (x, y, x + mask.size[0], y + mask.size[1]), mask)
             else:
@@ -582,8 +578,6 @@ class ImageDraw:
         stroke_width=0,
         stroke_fill=None,
         embedded_color=False,
-        *,
-        font_size=None,
     ):
         if direction == "ttb":
             msg = "ttb direction is unsupported for multiline text"
@@ -597,9 +591,6 @@ class ImageDraw:
         elif anchor[1] in "tb":
             msg = "anchor not supported for multiline text"
             raise ValueError(msg)
-
-        if font is None:
-            font = self._getfont(font_size)
 
         widths = []
         max_width = 0
@@ -654,6 +645,72 @@ class ImageDraw:
             )
             top += line_spacing
 
+    def textsize(
+        self,
+        text,
+        font=None,
+        spacing=4,
+        direction=None,
+        features=None,
+        language=None,
+        stroke_width=0,
+    ):
+        """Get the size of a given string, in pixels."""
+        deprecate("textsize", 10, "textbbox or textlength")
+        if self._multiline_check(text):
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                return self.multiline_textsize(
+                    text,
+                    font,
+                    spacing,
+                    direction,
+                    features,
+                    language,
+                    stroke_width,
+                )
+
+        if font is None:
+            font = self.getfont()
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            return font.getsize(
+                text,
+                direction,
+                features,
+                language,
+                stroke_width,
+            )
+
+    def multiline_textsize(
+        self,
+        text,
+        font=None,
+        spacing=4,
+        direction=None,
+        features=None,
+        language=None,
+        stroke_width=0,
+    ):
+        deprecate("multiline_textsize", 10, "multiline_textbbox")
+        max_width = 0
+        lines = self._multiline_split(text)
+        line_spacing = self._multiline_spacing(font, spacing, stroke_width)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            for line in lines:
+                line_width, line_height = self.textsize(
+                    line,
+                    font,
+                    spacing,
+                    direction,
+                    features,
+                    language,
+                    stroke_width,
+                )
+                max_width = max(max_width, line_width)
+        return max_width, len(lines) * line_spacing - spacing
+
     def textlength(
         self,
         text,
@@ -662,8 +719,6 @@ class ImageDraw:
         features=None,
         language=None,
         embedded_color=False,
-        *,
-        font_size=None,
     ):
         """Get the length of a given string, in pixels with 1/64 precision."""
         if self._multiline_check(text):
@@ -674,9 +729,24 @@ class ImageDraw:
             raise ValueError(msg)
 
         if font is None:
-            font = self._getfont(font_size)
+            font = self.getfont()
         mode = "RGBA" if embedded_color else self.fontmode
-        return font.getlength(text, mode, direction, features, language)
+        try:
+            return font.getlength(text, mode, direction, features, language)
+        except AttributeError:
+            deprecate("textlength support for fonts without getlength", 10)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                size = self.textsize(
+                    text,
+                    font,
+                    direction=direction,
+                    features=features,
+                    language=language,
+                )
+            if direction == "ttb":
+                return size[1]
+            return size[0]
 
     def textbbox(
         self,
@@ -691,16 +761,11 @@ class ImageDraw:
         language=None,
         stroke_width=0,
         embedded_color=False,
-        *,
-        font_size=None,
     ):
         """Get the bounding box of a given string, in pixels."""
         if embedded_color and self.mode not in ("RGB", "RGBA"):
             msg = "Embedded color supported only in RGB and RGBA modes"
             raise ValueError(msg)
-
-        if font is None:
-            font = self._getfont(font_size)
 
         if self._multiline_check(text):
             return self.multiline_textbbox(
@@ -717,6 +782,8 @@ class ImageDraw:
                 embedded_color,
             )
 
+        if font is None:
+            font = self.getfont()
         mode = "RGBA" if embedded_color else self.fontmode
         bbox = font.getbbox(
             text, mode, direction, features, language, stroke_width, anchor
@@ -736,8 +803,6 @@ class ImageDraw:
         language=None,
         stroke_width=0,
         embedded_color=False,
-        *,
-        font_size=None,
     ):
         if direction == "ttb":
             msg = "ttb direction is unsupported for multiline text"
@@ -751,9 +816,6 @@ class ImageDraw:
         elif anchor[1] in "tb":
             msg = "anchor not supported for multiline text"
             raise ValueError(msg)
-
-        if font is None:
-            font = self._getfont(font_size)
 
         widths = []
         max_width = 0
@@ -924,7 +986,7 @@ def floodfill(image, xy, value, border=None, thresh=0):
                     if border is None:
                         fill = _color_diff(p, background) <= thresh
                     else:
-                        fill = p not in (value, border)
+                        fill = p != value and p != border
                     if fill:
                         pixel[s, t] = value
                         new_edge.add((s, t))

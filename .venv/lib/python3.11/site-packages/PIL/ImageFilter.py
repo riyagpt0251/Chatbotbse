@@ -14,8 +14,6 @@
 #
 # See the README file for information on usage and redistribution.
 #
-from __future__ import annotations
-
 import functools
 
 
@@ -37,7 +35,7 @@ class BuiltinFilter(MultibandFilter):
 
 class Kernel(BuiltinFilter):
     """
-    Create a convolution kernel. The current version only
+    Create a convolution kernel.  The current version only
     supports 3x3 and 5x5 integer and floating point kernels.
 
     In the current version, kernels can only be applied to
@@ -45,10 +43,9 @@ class Kernel(BuiltinFilter):
 
     :param size: Kernel size, given as (width, height). In the current
                     version, this must be (3,3) or (5,5).
-    :param kernel: A sequence containing kernel weights. The kernel will
-                   be flipped vertically before being applied to the image.
+    :param kernel: A sequence containing kernel weights.
     :param scale: Scale factor. If given, the result for each pixel is
-                    divided by this value. The default is the sum of the
+                    divided by this value.  The default is the sum of the
                     kernel weights.
     :param offset: Offset. If given, this value is added to the result,
                     after it has been divided by the scale factor.
@@ -159,8 +156,7 @@ class GaussianBlur(MultibandFilter):
     approximates a Gaussian kernel. For details on accuracy see
     <https://www.mia.uni-saarland.de/Publications/gwosdek-ssvm11.pdf>
 
-    :param radius: Standard deviation of the Gaussian kernel. Either a sequence of two
-                   numbers for x and y, or a single number for both.
+    :param radius: Standard deviation of the Gaussian kernel.
     """
 
     name = "GaussianBlur"
@@ -169,12 +165,7 @@ class GaussianBlur(MultibandFilter):
         self.radius = radius
 
     def filter(self, image):
-        xy = self.radius
-        if not isinstance(xy, (tuple, list)):
-            xy = (xy, xy)
-        if xy == (0, 0):
-            return image.copy()
-        return image.gaussian_blur(xy)
+        return image.gaussian_blur(self.radius)
 
 
 class BoxBlur(MultibandFilter):
@@ -184,31 +175,21 @@ class BoxBlur(MultibandFilter):
     which runs in linear time relative to the size of the image
     for any radius value.
 
-    :param radius: Size of the box in a direction. Either a sequence of two numbers for
-                   x and y, or a single number for both.
-
-                   Radius 0 does not blur, returns an identical image.
-                   Radius 1 takes 1 pixel in each direction, i.e. 9 pixels in total.
+    :param radius: Size of the box in one direction. Radius 0 does not blur,
+                   returns an identical image. Radius 1 takes 1 pixel
+                   in each direction, i.e. 9 pixels in total.
     """
 
     name = "BoxBlur"
 
     def __init__(self, radius):
-        xy = radius
-        if not isinstance(xy, (tuple, list)):
-            xy = (xy, xy)
-        if xy[0] < 0 or xy[1] < 0:
+        if radius < 0:
             msg = "radius must be >= 0"
             raise ValueError(msg)
         self.radius = radius
 
     def filter(self, image):
-        xy = self.radius
-        if not isinstance(xy, (tuple, list)):
-            xy = (xy, xy)
-        if xy == (0, 0):
-            return image.copy()
-        return image.box_blur(xy)
+        return image.box_blur(self.radius)
 
 
 class UnsharpMask(MultibandFilter):
@@ -224,7 +205,7 @@ class UnsharpMask(MultibandFilter):
 
     .. _digital unsharp masking: https://en.wikipedia.org/wiki/Unsharp_masking#Digital_unsharp_masking
 
-    """
+    """  # noqa: E501
 
     name = "UnsharpMask"
 
@@ -396,7 +377,7 @@ class Color3DLUT(MultibandFilter):
         if hasattr(table, "shape"):
             try:
                 import numpy
-            except ImportError:
+            except ImportError:  # pragma: no cover
                 pass
 
         if numpy and isinstance(table, numpy.ndarray):

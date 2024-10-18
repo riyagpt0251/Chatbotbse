@@ -32,13 +32,11 @@
 # Details about the Spider image format:
 # https://spider.wadsworth.org/spider_doc/spider/docs/image_doc.html
 #
-from __future__ import annotations
-
 import os
 import struct
 import sys
 
-from . import Image, ImageFile
+from PIL import Image, ImageFile
 
 
 def isInt(f):
@@ -151,7 +149,7 @@ class SpiderImageFile(ImageFile.ImageFile):
             self.rawmode = "F;32BF"
         else:
             self.rawmode = "F;32F"
-        self._mode = "F"
+        self.mode = "F"
 
         self.tile = [("raw", (0, 0) + self.size, offset, (self.rawmode, 0, 1))]
         self._fp = self.fp  # FIXME: hack
@@ -193,7 +191,7 @@ class SpiderImageFile(ImageFile.ImageFile):
 
     # returns a ImageTk.PhotoImage object, after rescaling to 0..255
     def tkPhotoImage(self):
-        from . import ImageTk
+        from PIL import ImageTk
 
         return ImageTk.PhotoImage(self.convert2byte(), palette=256)
 
@@ -240,7 +238,9 @@ def makeSpiderHeader(im):
     if nvalues < 23:
         return []
 
-    hdr = [0.0] * nvalues
+    hdr = []
+    for i in range(nvalues):
+        hdr.append(0.0)
 
     # NB these are Fortran indices
     hdr[1] = 1.0  # nslice (=1 for an image)

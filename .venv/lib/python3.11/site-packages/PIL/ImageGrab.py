@@ -14,9 +14,7 @@
 #
 # See the README file for information on usage and redistribution.
 #
-from __future__ import annotations
 
-import io
 import os
 import shutil
 import subprocess
@@ -63,17 +61,7 @@ def grab(bbox=None, include_layered_windows=False, all_screens=False, xdisplay=N
                 left, top, right, bottom = bbox
                 im = im.crop((left - x0, top - y0, right - x0, bottom - y0))
             return im
-    try:
-        if not Image.core.HAVE_XCB:
-            msg = "Pillow was built without XCB support"
-            raise OSError(msg)
-        size, data = Image.core.grabscreen_x11(xdisplay)
-    except OSError:
-        if (
-            xdisplay is None
-            and sys.platform not in ("darwin", "win32")
-            and shutil.which("gnome-screenshot")
-        ):
+        elif shutil.which("gnome-screenshot"):
             fh, filepath = tempfile.mkstemp(".png")
             os.close(fh)
             subprocess.call(["gnome-screenshot", "-f", filepath])
@@ -85,25 +73,27 @@ def grab(bbox=None, include_layered_windows=False, all_screens=False, xdisplay=N
                 im.close()
                 return im_cropped
             return im
-        else:
-            raise
-    else:
-        im = Image.frombytes("RGB", size, data, "raw", "BGRX", size[0] * 4, 1)
-        if bbox:
-            im = im.crop(bbox)
-        return im
+    # use xdisplay=None for default display on non-win32/macOS systems
+    if not Image.core.HAVE_XCB:
+        msg = "Pillow was built without XCB support"
+        raise OSError(msg)
+    size, data = Image.core.grabscreen_x11(xdisplay)
+    im = Image.frombytes("RGB", size, data, "raw", "BGRX", size[0] * 4, 1)
+    if bbox:
+        im = im.crop(bbox)
+    return im
 
 
 def grabclipboard():
     if sys.platform == "darwin":
-        fh, filepath = tempfile.mkstemp(".png")
+        fh, filepath = tempfile.mkstemp(".jpg")
         os.close(fh)
         commands = [
             'set theFile to (open for access POSIX file "'
             + filepath
             + '" with write permission)',
             "try",
-            "    write (the clipboard as «class PNGf») to theFile",
+            "    write (the clipboard as JPEG picture) to theFile",
             "end try",
             "close access theFile",
         ]
@@ -130,6 +120,8 @@ def grabclipboard():
                 files = data[o:].decode("mbcs").split("\0")
             return files[: files.index("")]
         if isinstance(data, bytes):
+            import io
+
             data = io.BytesIO(data)
             if fmt == "png":
                 from . import PngImagePlugin
@@ -141,38 +133,17 @@ def grabclipboard():
                 return BmpImagePlugin.DibImageFile(data)
         return None
     else:
-        if os.getenv("WAYLAND_DISPLAY"):
-            session_type = "wayland"
-        elif os.getenv("DISPLAY"):
-            session_type = "x11"
-        else:  # Session type check failed
-            session_type = None
-
-        if shutil.which("wl-paste") and session_type in ("wayland", None):
-            output = subprocess.check_output(["wl-paste", "-l"]).decode()
-            mimetypes = output.splitlines()
-            if "image/png" in mimetypes:
-                mimetype = "image/png"
-            elif mimetypes:
-                mimetype = mimetypes[0]
-            else:
-                mimetype = None
-
+        if shutil.which("wl-paste"):
             args = ["wl-paste"]
-            if mimetype:
-                args.extend(["-t", mimetype])
-        elif shutil.which("xclip") and session_type in ("x11", None):
+        elif shutil.which("xclip"):
             args = ["xclip", "-selection", "clipboard", "-t", "image/png", "-o"]
         else:
             msg = "wl-paste or xclip is required for ImageGrab.grabclipboard() on Linux"
             raise NotImplementedError(msg)
-
-        p = subprocess.run(args, capture_output=True)
-        err = p.stderr
-        if err:
-            msg = f"{args[0]} error: {err.strip().decode()}"
-            raise ChildProcessError(msg)
-        data = io.BytesIO(p.stdout)
-        im = Image.open(data)
+        fh, filepath = tempfile.mkstemp()
+        subprocess.call(args, stdout=fh)
+        os.close(fh)
+        im = Image.open(filepath)
         im.load()
+        os.unlink(filepath)
         return im

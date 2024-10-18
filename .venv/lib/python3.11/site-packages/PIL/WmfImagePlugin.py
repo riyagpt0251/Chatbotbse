@@ -18,7 +18,6 @@
 # https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-WMF/[MS-WMF].pdf
 # http://wvware.sourceforge.net/caolan/index.html
 # http://wvware.sourceforge.net/caolan/ora-wmf.html
-from __future__ import annotations
 
 from . import Image, ImageFile
 from ._binary import i16le as word
@@ -43,7 +42,7 @@ if hasattr(Image.core, "drawwmf"):
 
     class WmfHandler:
         def open(self, im):
-            im._mode = "RGB"
+            im.mode = "RGB"
             self.bbox = im.info["wmf_bbox"]
 
         def load(self, im):
@@ -140,7 +139,7 @@ class WmfStubImageFile(ImageFile.StubImageFile):
             msg = "Unsupported file format"
             raise SyntaxError(msg)
 
-        self._mode = "RGB"
+        self.mode = "RGB"
         self._size = size
 
         loader = self._load()

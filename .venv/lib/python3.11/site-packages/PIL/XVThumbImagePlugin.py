@@ -16,7 +16,6 @@
 # To do:
 # FIXME: make save work (this requires quantization support)
 #
-from __future__ import annotations
 
 from . import Image, ImageFile, ImagePalette
 from ._binary import o8
@@ -66,7 +65,7 @@ class XVThumbImageFile(ImageFile.ImageFile):
         # parse header line (already read)
         s = s.strip().split()
 
-        self._mode = "P"
+        self.mode = "P"
         self._size = int(s[0]), int(s[1])
 
         self.palette = ImagePalette.raw("RGB", PALETTE)

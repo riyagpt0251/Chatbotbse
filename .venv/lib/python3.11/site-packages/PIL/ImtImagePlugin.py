@@ -13,7 +13,7 @@
 #
 # See the README file for information on usage and redistribution.
 #
-from __future__ import annotations
+
 
 import re
 
@@ -89,7 +89,7 @@ class ImtImageFile(ImageFile.ImageFile):
                     ysize = int(v)
                     self._size = xsize, ysize
                 elif k == b"pixel" and v == b"n8":
-                    self._mode = "L"
+                    self.mode = "L"
 
 
 #

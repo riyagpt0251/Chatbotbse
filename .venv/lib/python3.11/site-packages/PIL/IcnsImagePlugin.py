@@ -16,18 +16,17 @@
 #
 # See the README file for information on usage and redistribution.
 #
-from __future__ import annotations
 
 import io
 import os
 import struct
 import sys
 
-from . import Image, ImageFile, PngImagePlugin, features
+from PIL import Image, ImageFile, PngImagePlugin, features
 
 enable_jpeg2k = features.check_codec("jpg_2000")
 if enable_jpeg2k:
-    from . import Jpeg2KImagePlugin
+    from PIL import Jpeg2KImagePlugin
 
 MAGIC = b"icns"
 HEADERSIZE = 8
@@ -254,7 +253,7 @@ class IcnsImageFile(ImageFile.ImageFile):
 
     def _open(self):
         self.icns = IcnsFile(self.fp)
-        self._mode = "RGBA"
+        self.mode = "RGBA"
         self.info["sizes"] = self.icns.itersizes()
         self.best_size = self.icns.bestsize()
         self.size = (
@@ -306,7 +305,7 @@ class IcnsImageFile(ImageFile.ImageFile):
         px = im.load()
 
         self.im = im.im
-        self._mode = im.mode
+        self.mode = im.mode
         self.size = im.size
 
         return px
@@ -392,8 +391,8 @@ if __name__ == "__main__":
     with open(sys.argv[1], "rb") as fp:
         imf = IcnsImageFile(fp)
         for size in imf.info["sizes"]:
-            width, height, scale = imf.size = size
-            imf.save(f"out-{width}-{height}-{scale}.png")
+            imf.size = size
+            imf.save("out-%s-%s-%s.png" % size)
         with Image.open(sys.argv[1]) as im:
             im.save("out.png")
         if sys.platform == "windows":
