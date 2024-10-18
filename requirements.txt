@@ -69,8 +69,6 @@ urllib3==2.2.3
 Werkzeug==3.0.4
 wikipedia==1.4.0
 Wikipedia-API==0.7.1
-
-# Add the following lines to fix compatibility issues
-omegaconf<2.1,>=2.0.5  # Restrict omegaconf to be compatible with hydra-core and fairseq
-antlr4-python3-runtime==4.8  # Downgrade to meet requirement of hydra-core
-hydra-core==1.0.7  # Ensure the correct version is installed
+omegaconf>=2.0.0,<2.2.0
+antlr4-python3-runtime==4.8 
+hydra-core==1.0.7
