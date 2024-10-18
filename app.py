@@ -41,13 +41,14 @@ def fetch_user_data_by_email(email):
         query = users_ref.where('email', '==', email).stream()
 
         user_data = None
+        user_id = None  # Initialize user_id to avoid reference before assignment
         for doc in query:
             user_data = doc.to_dict()
-            user_id = doc.id
+            user_id = doc.id  # Capture the user ID
 
-        if user_data:
+        if user_data and user_id:  # Ensure user_data and user_id are not None
             progress_data = realtime_db.child('users').child(user_id).get()
-            return {**user_data, **progress_data} if progress_data else user_data
+            return {**user_data, **progress_data.val()} if progress_data else user_data
         else:
             return None
 
