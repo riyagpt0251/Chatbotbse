@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Initialize Firebase Admin SDK
-firebase_cert_path = os.getenv('FIREBASE_CERT_PATH')
+firebase_cert_path = os.getenv('FIREBASE_ADMIN_SDK_PATH')
 database_url = os.getenv('FIREBASE_DATABASE_URL')
 
 # Check if the Firebase app is already initialized
