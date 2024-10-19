@@ -48,13 +48,15 @@ def fetch_user_data_by_email(email):
 
         if user_data and user_id:  # Ensure user_data and user_id are not None
             progress_data = realtime_db.child('users').child(user_id).get()
-            return {**user_data, **progress_data.val()} if progress_data else user_data
+            # progress_data is already a dictionary, no need for .val()
+            return {**user_data, **progress_data} if progress_data else user_data
         else:
             return None
 
     except Exception as e:
         st.error(f"Error fetching user data: {e}")
         return None
+
 
 # Generate personalized question based on user progress
 def generate_personalized_question(user_data):
