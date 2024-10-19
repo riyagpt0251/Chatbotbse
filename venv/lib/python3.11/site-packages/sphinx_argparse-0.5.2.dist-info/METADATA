@@ -1,0 +1,88 @@
+Metadata-Version: 2.1
+Name: sphinx-argparse
+Version: 0.5.2
+Summary: A sphinx extension that automatically documents argparse commands and options
+Author-email: Ash Berlin-Taylor <ash_github@firemirror.com>
+Requires-Python: >=3.10
+Description-Content-Type: text/x-rst
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Framework :: Sphinx
+Classifier: Framework :: Sphinx :: Extension
+Classifier: Topic :: Documentation
+Classifier: Topic :: Documentation :: Sphinx
+Requires-Dist: sphinx>=5.1.0
+Requires-Dist: docutils>=0.19
+Requires-Dist: furo>=2024 ; extra == "docs"
+Requires-Dist: CommonMark>=0.5.6 ; extra == "docs"
+Requires-Dist: ruff>=0.5 ; extra == "lint"
+Requires-Dist: mypy>=1.10 ; extra == "lint"
+Requires-Dist: types-docutils>=0.21 ; extra == "lint"
+Requires-Dist: lxml-stubs>=0.4 ; extra == "lint"
+Requires-Dist: CommonMark>=0.5.6 ; extra == "markdown"
+Requires-Dist: pytest>=8.0 ; extra == "test"
+Requires-Dist: coverage>=6.5 ; extra == "test"
+Requires-Dist: lxml>=4.9 ; extra == "test"
+Requires-Dist: setuptools>=70.0 ; extra == "test"
+Requires-Dist: typing_extensions>=4.9 ; extra == "test"
+Project-URL: Changelog, https://sphinx-argparse.readthedocs.io/en/latest/changelog.html
+Project-URL: Code, https://github.com/sphinx-doc/sphinx-argparse/
+Project-URL: Download, https://pypi.org/project/sphinx-argparse/
+Project-URL: Homepage, https://sphinx-argparse.readthedocs.io/
+Project-URL: Issue tracker, https://github.com/sphinx-doc/sphinx-argparse/issues
+Provides-Extra: docs
+Provides-Extra: lint
+Provides-Extra: markdown
+Provides-Extra: test
+
+=================
+ sphinx-argparse
+=================
+
+.. image:: https://img.shields.io/pypi/v/sphinx-argparse.svg
+   :target: https://pypi.org/project/sphinx-argparse/
+   :alt: PyPI version
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/sphinx-argparse.svg
+   :target: https://github.com/conda-forge/sphinx-argparse-feedstock/
+   :alt: Conda version
+
+.. image:: https://github.com/sphinx-doc/sphinx/actions/workflows/main.yml/badge.svg
+   :target: https://github.com/sphinx-doc/sphinx/actions/workflows/main.yml
+   :alt: Build Status
+
+.. image:: https://readthedocs.org/projects/sphinx-argparse/badge/?version=stable
+   :target: https://sphinx-argparse.readthedocs.org/
+   :alt: Documentation Status
+
+.. image:: https://img.shields.io/badge/License-MIT-blue.svg
+   :target: https://opensource.org/licenses/MIT
+   :alt: MIT
+
+A Sphinx extension to automatically document argparse_ commands and options.
+
+For installation and usage details see the documentation_.
+The changelog is also `found there`_.
+
+.. _argparse: https://docs.python.org/3/library/argparse.html
+.. _documentation: https://sphinx-argparse.readthedocs.org/
+.. _found there: https://sphinx-argparse.readthedocs.org/en/latest/changelog.html
+
+.. note::
+   This project used to live at `alex-rudakov/sphinx-argparse`_,
+   and has been revived and moved to this `new home`_.
+
+   .. _alex-rudakov/sphinx-argparse: https://github.com/alex-rudakov/sphinx-argparse/
+   .. _new home: https://github.com/sphinx-doc/sphinx-argparse/
+
