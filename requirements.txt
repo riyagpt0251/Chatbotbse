@@ -18,7 +18,7 @@ Flask-Cors==4.0.1
 frozenlist==1.4.1
 gitdb==4.0.11
 GitPython==3.1.43
-google-api-core==2.21.0
+google-api-core
 google-api-python-client==2.149.0
 google-auth==2.35.0
 google-auth-httplib2==0.2.0
@@ -30,7 +30,7 @@ google-resumable-media==2.7.2
 googleapis-common-protos==1.65.0
 googletrans==4.0.0rc1
 grpcio==1.67.0
-grpcio-status==1.67.0
+grpcio-status
 gTTS==2.5.3
 h11==0.9.0
 h2==3.2.0
@@ -41,7 +41,7 @@ httplib2==0.22.0
 httpx==0.13.3
 hyperframe==5.2.0
 idna==2.10
-importlib_metadata==8.5.0
+importlib_metadata
 indic-nlp-library==0.92
 Jinja2==3.1.4
 jsonschema==4.23.0
@@ -52,14 +52,14 @@ mdurl==0.1.2
 msgpack==1.1.0
 multidict==6.1.0
 narwhals==1.9.4
-numpy==2.1.2
+numpy<2
 openai==0.28.1
-packaging==24.1
+packaging<24
 pandas==2.2.3
-pillow==11.0.0
+pillow
 propcache==0.2.0
 proto-plus==1.24.0
-protobuf==5.28.2
+protobuf>=3.20.2, <5.0
 pyarrow==17.0.0
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
@@ -80,13 +80,13 @@ six==1.16.0
 smmap==5.0.1
 sniffio==1.3.1
 streamlit==1.23.1
-tenacity==9.0.0
+tenacity==8.2.0
 toml==0.10.2
 tornado==6.4.1
 tqdm==4.66.5
 typing_extensions==4.12.2
 tzdata==2024.2
-tzlocal==5.2
+tzlocal
 uritemplate==4.1.1
 urllib3==2.2.3
 validators==0.34.0
