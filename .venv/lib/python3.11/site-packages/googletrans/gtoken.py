@@ -38,8 +38,8 @@ class TokenAcquirer:
     RE_TKK = re.compile(r'tkk:\'(.+?)\'', re.DOTALL)
     RE_RAWTKK = re.compile(r'tkk:\'(.+?)\'', re.DOTALL)
 
-    def __init__(self, client: httpx.Client, tkk='0', host='translate.google.com'):
-        self.client = client
+    def __init__(self, tkk='0', client: httpx.Client = None, host='translate.google.com'):
+        self.client = client or httpx.Client()
         self.tkk = tkk
         self.host = host if 'http' in host else 'https://' + host
 
@@ -58,15 +58,10 @@ class TokenAcquirer:
             self.tkk = raw_tkk.group(1)
             return
 
-        try:
-            # this will be the same as python code after stripping out a reserved word 'var'
-            code = self.RE_TKK.search(r.text).group(1).replace('var ', '')
-            # unescape special ascii characters such like a \x3d(=)
-            code = code.encode().decode('unicode-escape')
-        except AttributeError:
-            raise Exception('Could not find TKK token for this request.\nSee https://github.com/ssut/py-googletrans/issues/234 for more details.')
-        except:
-            raise
+        # this will be the same as python code after stripping out a reserved word 'var'
+        code = self.RE_TKK.search(r.text).group(1).replace('var ', '')
+        # unescape special ascii characters such like a \x3d(=)
+        code = code.encode().decode('unicode-escape')
 
         if code:
             tree = ast.parse(code)
@@ -110,7 +105,7 @@ class TokenAcquirer:
             self.tkk = result
 
     def _lazy(self, value):
-        """like lazy evaluation, this method returns a lambda function that
+        """like lazy evalution, this method returns a lambda function that
         returns value given.
         We won't be needing this because this seems to have been built for
         code obfuscation.
